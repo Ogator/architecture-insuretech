@@ -1,0 +1,1034 @@
+# GraphQL Schema для client-info сервиса
+
+schema {
+  query: Query
+  mutation: Mutation
+}
+
+"""
+Клиент InsureTech
+"""
+type Client {
+  """
+  Уникальный идентификатор клиента
+  """
+  id: ID!
+
+  """
+  ФИО клиента
+  """
+  name: String!
+
+  """
+  Возраст клиента
+  """
+  age: Int!
+
+  """
+  Email клиента
+  """
+  email: String
+
+  """
+  Номер телефона
+  """
+  phone: String
+
+  """
+  Дата рождения (ISO 8601)
+  """
+  birthDate: String
+
+  """
+  Пол клиента
+  """
+  gender: Gender
+
+  """
+  ИНН клиента
+  """
+  inn: String
+
+  """
+  СНИЛС
+  """
+  snils: String
+
+  """
+  Адрес регистрации
+  """
+  registrationAddress: Address
+
+  """
+  Адрес фактического проживания
+  """
+  residenceAddress: Address
+
+  """
+  Документы клиента (паспорт, водительские права, и т.д.)
+  Может быть отфильтровано по типу документа
+  """
+  documents(type: DocumentType): [Document!]!
+
+  """
+  Родственники клиента
+  Может быть отфильтровано по типу родства
+  """
+  relatives(relationType: RelationType): [Relative!]!
+
+  """
+  Автомобили клиента (для ОСАГО/КАСКО)
+  """
+  vehicles: [Vehicle!]!
+
+  """
+  Страховые полисы клиента
+  """
+  policies: [Policy!]!
+
+  """
+  Банковские карты клиента (для оплаты)
+  """
+  paymentMethods: [PaymentMethod!]!
+
+  """
+  Статус клиента (активен, заблокирован, и т.д.)
+  """
+  status: ClientStatus!
+
+  """
+  Дата создания записи клиента
+  """
+  createdAt: DateTime!
+
+  """
+  Дата последнего обновления
+  """
+  updatedAt: DateTime!
+
+  """
+  Маркетинговые согласия (SMS, email, звонки)
+  """
+  marketingConsents: MarketingConsents
+
+  """
+  Кредитный рейтинг (для underwriting)
+  """
+  creditScore: Int
+
+  """
+  История страховых случаев
+  """
+  claims: [Claim!]!
+}
+
+"""
+Пол клиента
+"""
+enum Gender {
+  MALE
+  FEMALE
+  OTHER
+}
+
+"""
+Статус клиента
+"""
+enum ClientStatus {
+  """
+  Активный клиент
+  """
+  ACTIVE
+
+  """
+  Заблокирован (например, за мошенничество)
+  """
+  BLOCKED
+
+  """
+  Удалён (soft delete)
+  """
+  DELETED
+
+  """
+  Ожидает верификации
+  """
+  PENDING_VERIFICATION
+}
+
+"""
+Адрес (регистрация или проживание)
+"""
+type Address {
+  """
+  Страна
+  """
+  country: String!
+
+  """
+  Регион/область
+  """
+  region: String!
+
+  """
+  Город
+  """
+  city: String!
+
+  """
+  Улица
+  """
+  street: String!
+
+  """
+  Дом
+  """
+  building: String!
+
+  """
+  Корпус/строение
+  """
+  block: String
+
+  """
+  Квартира
+  """
+  apartment: String
+
+  """
+  Почтовый индекс
+  """
+  postalCode: String!
+
+  """
+  Координаты (для геолокации)
+  """
+  coordinates: Coordinates
+}
+
+"""
+Географические координаты
+"""
+type Coordinates {
+  latitude: Float!
+  longitude: Float!
+}
+
+"""
+Документ клиента (паспорт, права, и т.д.)
+"""
+type Document {
+  """
+  Уникальный идентификатор документа
+  """
+  id: ID!
+
+  """
+  Тип документа (паспорт, водительские права, и т.д.)
+  """
+  type: DocumentType!
+
+  """
+  Серия и номер документа
+  """
+  number: String!
+
+  """
+  Дата выдачи (ISO 8601)
+  """
+  issueDate: String!
+
+  """
+  Дата окончания срока действия (ISO 8601)
+  Может быть null для бессрочных документов
+  """
+  expiryDate: String
+
+  """
+  Кем выдан
+  """
+  issuedBy: String!
+
+  """
+  Код подразделения (для паспорта РФ)
+  """
+  departmentCode: String
+
+  """
+  Скан-копия документа (URL в Object Storage)
+  """
+  scanUrl: String
+
+  """
+  Статус верификации документа
+  """
+  verificationStatus: VerificationStatus!
+
+  """
+  Примечания
+  """
+  notes: String
+}
+
+"""
+Тип документа
+"""
+enum DocumentType {
+  """
+  Паспорт гражданина РФ
+  """
+  PASSPORT
+
+  """
+  Водительские права
+  """
+  DRIVING_LICENSE
+
+  """
+  Заграничный паспорт
+  """
+  FOREIGN_PASSPORT
+
+  """
+  Свидетельство о рождении
+  """
+  BIRTH_CERTIFICATE
+
+  """
+  СНИЛС
+  """
+  SNILS
+
+  """
+  ИНН
+  """
+  INN
+
+  """
+  Военный билет
+  """
+  MILITARY_ID
+
+  """
+  Другое
+  """
+  OTHER
+}
+
+"""
+Статус верификации
+"""
+enum VerificationStatus {
+  """
+  Ожидает проверки
+  """
+  PENDING
+
+  """
+  Проверен, данные корректны
+  """
+  VERIFIED
+
+  """
+  Отклонён (некорректные данные)
+  """
+  REJECTED
+
+  """
+  Истёк срок действия
+  """
+  EXPIRED
+}
+
+"""
+Родственник клиента
+"""
+type Relative {
+  """
+  Уникальный идентификатор родственника
+  """
+  id: ID!
+
+  """
+  Тип родства (супруг, ребёнок, родитель, и т.д.)
+  """
+  relationType: RelationType!
+
+  """
+  ФИО родственника
+  """
+  name: String!
+
+  """
+  Возраст
+  """
+  age: Int
+
+  """
+  Дата рождения (ISO 8601)
+  """
+  birthDate: String
+
+  """
+  Пол
+  """
+  gender: Gender
+
+  """
+  Телефон
+  """
+  phone: String
+
+  """
+  Email
+  """
+  email: String
+
+  """
+  Документы родственника (для выгодоприобретателей)
+  """
+  documents(type: DocumentType): [Document!]!
+
+  """
+  Является ли выгодоприобретателем по страховке
+  """
+  isBeneficiary: Boolean!
+
+  """
+  Доля в выплате (если выгодоприобретатель), например 0.5 = 50%
+  """
+  beneficiaryShare: Float
+}
+
+"""
+Тип родства
+"""
+enum RelationType {
+  """
+  Супруг/супруга
+  """
+  SPOUSE
+
+  """
+  Ребёнок
+  """
+  CHILD
+
+  """
+  Родитель
+  """
+  PARENT
+
+  """
+  Брат/сестра
+  """
+  SIBLING
+
+  """
+  Дедушка/бабушка
+  """
+  GRANDPARENT
+
+  """
+  Внук/внучка
+  """
+  GRANDCHILD
+
+  """
+  Другое
+  """
+  OTHER
+}
+
+"""
+Автомобиль клиента (для ОСАГО/КАСКО)
+"""
+type Vehicle {
+  """
+  Уникальный идентификатор автомобиля
+  """
+  id: ID!
+
+  """
+  VIN номер
+  """
+  vin: String!
+
+  """
+  Регистрационный номер (госномер)
+  """
+  registrationNumber: String!
+
+  """
+  Марка автомобиля
+  """
+  brand: String!
+
+  """
+  Модель
+  """
+  model: String!
+
+  """
+  Год выпуска
+  """
+  year: Int!
+
+  """
+  Цвет
+  """
+  color: String
+
+  """
+  Мощность двигателя (л.с.)
+  """
+  enginePower: Int
+
+  """
+  Объём двигателя (л)
+  """
+  engineVolume: Float
+
+  """
+  Тип топлива
+  """
+  fuelType: FuelType
+
+  """
+  СТС (свидетельство о регистрации ТС)
+  """
+  registrationCertificate: Document
+
+  """
+  ПТС (паспорт транспортного средства)
+  """
+  vehiclePassport: Document
+
+  """
+  Полисы, связанные с этим автомобилем
+  """
+  policies: [Policy!]!
+}
+
+"""
+Тип топлива
+"""
+enum FuelType {
+  GASOLINE
+  DIESEL
+  ELECTRIC
+  HYBRID
+  GAS
+}
+
+"""
+Страховой полис
+"""
+type Policy {
+  """
+  Уникальный идентификатор полиса
+  """
+  id: ID!
+
+  """
+  Номер полиса
+  """
+  policyNumber: String!
+
+  """
+  Тип страхования (ОСАГО, КАСКО, жизнь, и т.д.)
+  """
+  policyType: PolicyType!
+
+  """
+  Страховая компания
+  """
+  insuranceCompany: String!
+
+  """
+  Дата начала действия
+  """
+  startDate: String!
+
+  """
+  Дата окончания действия
+  """
+  endDate: String!
+
+  """
+  Страховая премия (стоимость)
+  """
+  premium: Float!
+
+  """
+  Страховая сумма (покрытие)
+  """
+  coverage: Float!
+
+  """
+  Статус полиса
+  """
+  status: PolicyStatus!
+
+  """
+  Автомобиль (для ОСАГО/КАСКО)
+  """
+  vehicle: Vehicle
+
+  """
+  Выгодоприобретатели
+  """
+  beneficiaries: [Relative!]!
+}
+
+"""
+Тип страхования
+"""
+enum PolicyType {
+  """
+  ОСАГО (обязательное автострахование)
+  """
+  OSAGO
+
+  """
+  КАСКО (добровольное автострахование)
+  """
+  KASKO
+
+  """
+  Страхование жизни
+  """
+  LIFE_INSURANCE
+
+  """
+  ОМС (обязательное медицинское страхование)
+  """
+  HEALTH_INSURANCE
+
+  """
+  Страхование недвижимости
+  """
+  PROPERTY_INSURANCE
+
+  """
+  Страхование от несчастных случаев
+  """
+  ACCIDENT_INSURANCE
+
+  """
+  Другое
+  """
+  OTHER
+}
+
+"""
+Статус полиса
+"""
+enum PolicyStatus {
+  """
+  Активен
+  """
+  ACTIVE
+
+  """
+  Истёк срок действия
+  """
+  EXPIRED
+
+  """
+  Отменён
+  """
+  CANCELLED
+
+  """
+  Ожидает оплаты
+  """
+  PENDING_PAYMENT
+}
+
+"""
+Способ оплаты (банковская карта)
+"""
+type PaymentMethod {
+  """
+  Уникальный идентификатор способа оплаты
+  """
+  id: ID!
+
+  """
+  Тип способа оплаты
+  """
+  type: PaymentMethodType!
+
+  """
+  Последние 4 цифры карты (для безопасности)
+  """
+  last4Digits: String!
+
+  """
+  Платёжная система (Visa, MasterCard, Mir)
+  """
+  cardBrand: String!
+
+  """
+  Месяц истечения срока действия
+  """
+  expiryMonth: Int!
+
+  """
+  Год истечения срока действия
+  """
+  expiryYear: Int!
+
+  """
+  Имя держателя карты
+  """
+  cardholderName: String!
+
+  """
+  Основной способ оплаты (по умолчанию)
+  """
+  isDefault: Boolean!
+}
+
+"""
+Тип способа оплаты
+"""
+enum PaymentMethodType {
+  CARD
+  BANK_ACCOUNT
+  E_WALLET
+}
+
+"""
+Маркетинговые согласия
+"""
+type MarketingConsents {
+  """
+  Согласие на SMS рассылку
+  """
+  smsConsent: Boolean!
+
+  """
+  Согласие на email рассылку
+  """
+  emailConsent: Boolean!
+
+  """
+  Согласие на звонки
+  """
+  phoneConsent: Boolean!
+
+  """
+  Согласие на push-уведомления
+  """
+  pushConsent: Boolean!
+
+  """
+  Дата последнего обновления согласий
+  """
+  updatedAt: DateTime!
+}
+
+"""
+Страховой случай (claim)
+"""
+type Claim {
+  """
+  Уникальный идентификатор страхового случая
+  """
+  id: ID!
+
+  """
+  Номер страхового случая
+  """
+  claimNumber: String!
+
+  """
+  Связанный полис
+  """
+  policy: Policy!
+
+  """
+  Дата страхового случая
+  """
+  incidentDate: String!
+
+  """
+  Описание случая
+  """
+  description: String!
+
+  """
+  Сумма выплаты
+  """
+  claimAmount: Float
+
+  """
+  Статус обработки
+  """
+  status: ClaimStatus!
+
+  """
+  Дата подачи заявления
+  """
+  submittedAt: DateTime!
+}
+
+"""
+Статус страхового случая
+"""
+enum ClaimStatus {
+  """
+  Подан, ожидает рассмотрения
+  """
+  SUBMITTED
+
+  """
+  В процессе рассмотрения
+  """
+  IN_REVIEW
+
+  """
+  Одобрен, ожидает выплаты
+  """
+  APPROVED
+
+  """
+  Отклонён
+  """
+  REJECTED
+
+  """
+  Выплачен
+  """
+  PAID
+}
+
+"""
+Дата и время в формате ISO 8601
+"""
+scalar DateTime
+
+"""
+Root Query type
+"""
+type Query {
+  """
+  Получить клиента по ID
+  """
+  client(id: ID!): Client
+
+  """
+  Получить список клиентов с фильтрацией и пагинацией
+  """
+  clients(
+    """
+    Фильтр по статусу клиента
+    """
+    status: ClientStatus
+
+    """
+    Фильтр по имени (поиск по подстроке)
+    """
+    nameContains: String
+
+    """
+    Фильтр по email
+    """
+    email: String
+
+    """
+    Фильтр по телефону
+    """
+    phone: String
+
+    """
+    Фильтр по ИНН
+    """
+    inn: String
+
+    """
+    Количество записей на странице (по умолчанию 20, макс 100)
+    """
+    limit: Int = 20
+
+    """
+    Смещение для пагинации
+    """
+    offset: Int = 0
+  ): ClientConnection!
+
+  """
+  Получить документ по ID
+  """
+  document(id: ID!): Document
+
+  """
+  Получить родственника по ID
+  """
+  relative(id: ID!): Relative
+
+  """
+  Получить автомобиль по ID
+  """
+  vehicle(id: ID!): Vehicle
+
+  """
+  Получить автомобиль по VIN номеру
+  """
+  vehicleByVin(vin: String!): Vehicle
+
+  """
+  Получить полис по ID
+  """
+  policy(id: ID!): Policy
+
+  """
+  Получить полис по номеру
+  """
+  policyByNumber(policyNumber: String!): Policy
+
+  """
+  Получить страховой случай по ID
+  """
+  claim(id: ID!): Claim
+}
+
+"""
+Пагинация для списка клиентов
+"""
+type ClientConnection {
+  """
+  Список клиентов на текущей странице
+  """
+  nodes: [Client!]!
+
+  """
+  Общее количество клиентов (для всех страниц)
+  """
+  totalCount: Int!
+
+  """
+  Есть ли следующая страница
+  """
+  hasNextPage: Boolean!
+
+  """
+  Есть ли предыдущая страница
+  """
+  hasPreviousPage: Boolean!
+}
+
+"""
+Root Mutation type (для будущих операций создания/обновления)
+"""
+type Mutation {
+  """
+  Создать нового клиента
+  """
+  createClient(input: CreateClientInput!): Client!
+
+  """
+  Обновить данные клиента
+  """
+  updateClient(id: ID!, input: UpdateClientInput!): Client!
+
+  """
+  Добавить документ клиенту
+  """
+  addDocument(clientId: ID!, input: AddDocumentInput!): Document!
+
+  """
+  Добавить родственника
+  """
+  addRelative(clientId: ID!, input: AddRelativeInput!): Relative!
+
+  """
+  Обновить маркетинговые согласия
+  """
+  updateMarketingConsents(clientId: ID!, input: MarketingConsentsInput!): Client!
+}
+
+"""
+Input для создания клиента
+"""
+input CreateClientInput {
+  name: String!
+  age: Int!
+  email: String
+  phone: String
+  birthDate: String
+  gender: Gender
+  inn: String
+  snils: String
+  registrationAddress: AddressInput
+}
+
+"""
+Input для обновления клиента
+"""
+input UpdateClientInput {
+  name: String
+  age: Int
+  email: String
+  phone: String
+  birthDate: String
+  gender: Gender
+  inn: String
+  snils: String
+  registrationAddress: AddressInput
+  residenceAddress: AddressInput
+}
+
+"""
+Input для адреса
+"""
+input AddressInput {
+  country: String!
+  region: String!
+  city: String!
+  street: String!
+  building: String!
+  block: String
+  apartment: String
+  postalCode: String!
+}
+
+"""
+Input для добавления документа
+"""
+input AddDocumentInput {
+  type: DocumentType!
+  number: String!
+  issueDate: String!
+  expiryDate: String
+  issuedBy: String!
+  departmentCode: String
+  scanUrl: String
+}
+
+"""
+Input для добавления родственника
+"""
+input AddRelativeInput {
+  relationType: RelationType!
+  name: String!
+  age: Int
+  birthDate: String
+  gender: Gender
+  phone: String
+  email: String
+  isBeneficiary: Boolean
+  beneficiaryShare: Float
+}
+
+"""
+Input для маркетинговых согласий
+"""
+input MarketingConsentsInput {
+  smsConsent: Boolean!
+  emailConsent: Boolean!
+  phoneConsent: Boolean!
+  pushConsent: Boolean!
+}

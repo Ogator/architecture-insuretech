@@ -1,0 +1,24 @@
+# Конфигурация для установки Prometheus через Helm
+# helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
+# helm install prometheus prometheus-community/kube-prometheus-stack -f prometheus-values.yaml
+
+# Упрощенная конфигурация для локального кластера
+prometheus:
+  prometheusSpec:
+    serviceMonitorSelectorNilUsesHelmValues: false
+    podMonitorSelectorNilUsesHelmValues: false
+    retention: 24h
+    resources:
+      requests:
+        memory: 400Mi
+        cpu: 100m
+      limits:
+        memory: 800Mi
+        cpu: 500m
+
+grafana:
+  enabled: true
+  adminPassword: admin
+
+alertmanager:
+  enabled: false
